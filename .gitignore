@@ -1,0 +1,8 @@
+# Ignore node_modules and package-lock.json for project1
+carol/node_modules/
+carol/package-lock.json
+
+# Ignore node_modules and package-lock.json for project2
+chatter/node_modules/
+chatter/package-lock.json
+chatter/.env
