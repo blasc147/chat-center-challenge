@@ -1,32 +1,36 @@
-import React, { useContext } from 'react';
-import io from 'socket.io-client';
-import useSound from 'use-sound';
-import config from '../../../config';
-import LatestMessagesContext from '../../../contexts/LatestMessages/LatestMessages';
-import TypingMessage from './TypingMessage';
-import Header from './Header';
-import Footer from './Footer';
-import Message from './Message';
-import '../styles/_messages.scss';
+import React from 'react'
+import TypingMessage from './TypingMessage'
+import Header from './Header'
+import Footer from './Footer'
+import Message from './Message'
+import useChat from '../../../hooks/useChat'
+import '../styles/_messages.scss'
 
-const socket = io(
-  config.BOT_SERVER_ENDPOINT,
-  { transports: ['websocket', 'polling', 'flashsocket'] }
-);
-
-function Messages() {
-  const [playSend] = useSound(config.SEND_AUDIO_URL);
-  const [playReceive] = useSound(config.RECEIVE_AUDIO_URL);
-  const { setLatestMessage } = useContext(LatestMessagesContext);
+function Messages({ selectedUser }) {
+  const { messages, message, botTyping, sendMessage, onChangeMessage } =
+    useChat(selectedUser)
 
   return (
-    <div className="messages">
-      <Header />
-      <div className="messages__list" id="message-list">
+    <div className='messages'>
+      <Header user={selectedUser} />
+      <div className='messages__list' id='message-list'>
+        {messages.map((msg, index) => (
+          <Message
+            key={msg.id}
+            message={msg}
+            nextMessage={messages[index + 1]}
+            botTyping={botTyping}
+          />
+        ))}
+        {botTyping && <TypingMessage />}
       </div>
-      <Footer message={message} sendMessage={sendMessage} onChangeMessage={onChangeMessage} />
+      <Footer
+        message={message}
+        sendMessage={sendMessage}
+        onChangeMessage={onChangeMessage}
+      />
     </div>
-  );
+  )
 }
 
-export default Messages;
+export default Messages
