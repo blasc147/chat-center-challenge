@@ -6,9 +6,18 @@ import UserProfile from '../../common/components/UserProfile/UserProfile'
 import './_user-list.scss'
 import config from '../../config'
 
-function User({ icon, name, lastActive, isOnline, id, color, onSelectUser }) {
+function User({
+  icon,
+  name,
+  lastActive,
+  isOnline,
+  id,
+  color,
+  onSelectUser,
+  userId
+}) {
   const { messages } = useContext(LatestMessagesContext)
-
+  console.log(messages)
   return (
     <div className='user-list__users__user' onClick={() => onSelectUser(id)}>
       <UserProfile icon={icon} name={name} color={color} />
@@ -19,7 +28,7 @@ function User({ icon, name, lastActive, isOnline, id, color, onSelectUser }) {
             {isOnline ? 'Online' : lastActive}
           </p>
         </div>
-        <p>{messages[id]}</p>
+        <p>{messages[userId]}</p>
       </div>
     </div>
   )

@@ -1,19 +1,13 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useContext } from 'react'
 import io from 'socket.io-client'
 import useSound from 'use-sound'
 import config from '../config'
-import initialMessage from '../common/constants/initialCarolMessage'
+import LatestMessagesContext from '../contexts/LatestMessages'
 import axios from 'axios'
 
 const socket = io(config.BOT_SERVER_ENDPOINT, {
   transports: ['websocket', 'polling', 'flashsocket']
 })
-
-const initialCarolMessage = {
-  user: 'bot',
-  message: initialMessage,
-  id: Date.now()
-}
 
 export default function useChat(selectedUser) {
   const [playSend] = useSound(config.SEND_AUDIO_URL)
@@ -21,12 +15,13 @@ export default function useChat(selectedUser) {
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
   const [botTyping, setBotTyping] = useState(false)
+  const { setLatestMessage } = useContext(LatestMessagesContext)
 
   useEffect(() => {
-    if (selectedUser) {
+    if (selectedUser.id) {
       async function fetchMessages() {
         const response = await axios.get(
-          `${config.BOT_SERVER_ENDPOINT}/api/chats/${selectedUser}`
+          `${config.BOT_SERVER_ENDPOINT}/api/chats/${selectedUser.id}`
         )
         setMessages(response.data.messages)
       }
@@ -40,11 +35,14 @@ export default function useChat(selectedUser) {
     })
 
     socket.on('bot-message', (botMessage) => {
-      console.log('Received bot message:', botMessage)
       setMessages((prevMessages) => [
         ...prevMessages,
         { user: 'bot', message: botMessage, id: Date.now() }
       ])
+      setLatestMessage(selectedUser.userId, {
+        user: 'bot',
+        message: botMessage
+      })
       setBotTyping(false)
       playReceive()
     })
@@ -64,7 +62,7 @@ export default function useChat(selectedUser) {
       socket.off('bot-typing')
       socket.off('disconnect')
     }
-  }, [playReceive])
+  }, [playReceive, selectedUser, setLatestMessage])
 
   const sendMessage = useCallback(() => {
     if (message.trim()) {
@@ -75,12 +73,13 @@ export default function useChat(selectedUser) {
       }
       console.log('Sending user message:', userMessage)
       setMessages((prevMessages) => [...prevMessages, userMessage])
+      setLatestMessage('me', userMessage)
       setMessage('')
       playSend()
 
       socket.emit('user-message', message.trim())
     }
-  }, [message, playSend])
+  }, [message, playSend, setLatestMessage])
 
   const onChangeMessage = (e) => {
     setMessage(e.target.value)

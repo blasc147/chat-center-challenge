@@ -8,7 +8,7 @@ import '../styles/_messages.scss'
 
 function Messages({ selectedUser }) {
   const { messages, message, botTyping, sendMessage, onChangeMessage } =
-    useChat(selectedUser.id)
+    useChat(selectedUser)
 
   return (
     <div className='messages'>
